@@ -21,9 +21,20 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state, place } = await params;
+
+  if (state.includes("{") || place.includes("{") || state.includes("$") || state.includes("&")) {
+    permanentRedirect("/");
+  }
+
   const stateCode = state.toUpperCase();
   const loc = await getLocation(stateCode, place);
-  if (!loc) return { title: "Not Found" };
+  if (!loc) {
+    const realLoc = getLocationBySlugOnly(place);
+    if (realLoc) {
+      permanentRedirect(`/${realLoc.state_code.toLowerCase()}/${realLoc.place_slug}`);
+    }
+    return { title: "Not Found" };
+  }
   const allowed = await isLocationAllowed(stateCode, place);
   if (!allowed) return { title: "Not Found" };
 

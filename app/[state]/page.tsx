@@ -40,6 +40,10 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state } = await params;
 
+  if (state === "&" || state === "$" || state.includes("{") || state.includes("}")) {
+    permanentRedirect("/");
+  }
+
   // Handle Hub Aliases
   const targetSlug = HUB_ALIASES[state] || state;
   const hub = getAuthorityHub(targetSlug);

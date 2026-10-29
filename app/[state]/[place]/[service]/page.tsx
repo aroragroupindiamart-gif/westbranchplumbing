@@ -41,9 +41,21 @@ const CONCEPT_MAP: Record<string, any> = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { state, place, service: serviceSlug } = await params;
+
+  if (state.includes("{") || place.includes("{") || state.includes("$") || state.includes("&")) {
+    permanentRedirect("/");
+  }
+
   const stateCode = state.toUpperCase();
   const [loc, svc] = await Promise.all([getLocation(stateCode, place), getService(serviceSlug)]);
-  if (!loc || !svc) return { title: "Not Found" };
+  if (!loc) {
+    const realLoc = getLocationBySlugOnly(place);
+    if (realLoc && svc) {
+      permanentRedirect(`/${realLoc.state_code.toLowerCase()}/${realLoc.place_slug}/${svc.service_slug}`);
+    }
+    return { title: "Not Found" };
+  }
+  if (!svc) return { title: "Not Found" };
   const allowed = await isLocationAndServiceAllowed(stateCode, place, serviceSlug);
   if (!allowed) return { title: "Not Found" };
 
