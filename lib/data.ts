@@ -40,11 +40,15 @@ const POPULATION_SORTED_LOCATIONS = ALL_LOCATIONS.slice().sort(
 
 const locationByKey = new Map<string, Location>();
 const locationById  = new Map<number, Location>();
+const locationBySlugOnly = new Map<string, Location>();
 const serviceBySlug = new Map<string, Service>();
 
 for (const loc of ALL_LOCATIONS) {
   locationByKey.set(`${loc.state_code}|${loc.place_slug}`, loc);
   locationById.set(loc.id, loc);
+  if (!locationBySlugOnly.has(loc.place_slug)) {
+    locationBySlugOnly.set(loc.place_slug, loc);
+  }
 }
 for (const svc of ALL_SERVICES) {
   serviceBySlug.set(svc.service_slug, svc);
@@ -111,6 +115,10 @@ export async function getLocation(stateCode: string, placeSlug: string): Promise
   return locationByKey.get(`${stateCode}|${placeSlug}`) ?? null;
 }
 
+export function getLocationBySlugOnly(placeSlug: string): Location | null {
+  return locationBySlugOnly.get(placeSlug.toLowerCase()) ?? null;
+}
+
 export async function getLocationById(id: number): Promise<Location | null> {
   return locationById.get(id) ?? null;
 }
@@ -145,7 +153,7 @@ export async function getNearbyLocations(locationId: number, stateCode: string, 
   if (stateDripLocs.length > 0) {
     return stateDripLocs.slice(0, limit);
   }
-  return dripLocs.filter((l) => l.id !== locationId).slice(0, limit);
+  return [];
 }
 
 /* ================================================================

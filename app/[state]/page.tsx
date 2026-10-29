@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound, redirect, permanentRedirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
@@ -76,6 +76,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function StateOrHubPage({ params }: Props) {
   const { state } = await params;
+
+  // Guard against crawler artifacts (e.g. /&, /$, /{state})
+  if (state === "&" || state === "$" || state.includes("{") || state.includes("}")) {
+    permanentRedirect("/");
+  }
 
   // 1. Check if Hub Alias -> 301 Redirect to canonical spec slug
   if (HUB_ALIASES[state]) {
